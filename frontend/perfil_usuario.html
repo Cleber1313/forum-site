@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil - Forum Rap-BR</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+ <header class="header">
+        <img class="logo-site" src="/frontend/imagens/logo.oficial.png" alt="">
+        <nav class="nav-header">
+            <ul class="menu">
+                <li class="lista-menu"><a href="entrar.html">Entrar</a></li>
+                <li class="lista-menu-foco"><a href="index.html">Home</a></li>
+                <li class="lista-menu"><a href="comunidade.html">Comunidade</a></li>
+                <li class="lista-menu"><a href="regras.html">Regras</a></li>
+                <li class="lista-menu"><a onclick="logout()">Sair</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="main">
+<article class="card-perfil">
+            <div id="profileInfo"></div>
+            <div class="botoes-ocultar">
+            <button id="togglePostsBtn" class="toggle-btn">Seus Posts</button>
+            <div id="userPosts" class="hidden"></div>
+            <button id="toggleCommentsBtn" class="toggle-btn">Seus Comentários</button>
+            <div id="userComments" class="hidden"></div>
+            </div>
+        </article>
+</article>
+<script>
+        const API_URL = 'http://localhost:3000/api';
+        const token = localStorage.getItem('token');
+
+        function checkLogin() {
+            if (!token) window.location.href = 'entrar.html';
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'entrar.html';
+        }
+
+        window.onload = async () => {
+            checkLogin();
+            try {
+                const res = await fetch(`${API_URL}/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('profileInfo').innerHTML = `
+                        <div class="usuario">
+                            <img class="foto-Usuario" src="${data.user.profile_pic}" alt="">
+                            <h1 class="nome-usuario">${data.user.full_name}</h1>
+                        </div>
+                        <p>Email: ${data.user.email}</p>
+                        <p>Nascimento: ${new Date(data.user.birth_date).toLocaleDateString()}</p>
+                        <p>Bio: ${data.user.bio || 'Nenhuma bio definida'}</p>
+                        <a href="editar_perfil.html">Editar Perfil</a>
+                    `;
+                    const postsContainer = document.getElementById('userPosts');
+                    data.posts.forEach(post => {
+                        const div = document.createElement('div');
+                        div.innerHTML = `<p>${post.title || ''}: ${post.content} (${new Date(post.created_at).toLocaleString()})</p>`;
+                        postsContainer.appendChild(div);
+                    });
+                    const commentsContainer = document.getElementById('userComments');
+                    data.comments.forEach(comment => {
+                        const div = document.createElement('div');
+                        div.innerHTML = `<p>No post ${comment.post_id}: ${comment.content} (${new Date(comment.created_at).toLocaleString()})</p>`;
+                        commentsContainer.appendChild(div);
+                    });
+
+                    // Configurar botões de alternância
+                    const togglePostsBtn = document.getElementById('togglePostsBtn');
+                    const toggleCommentsBtn = document.getElementById('toggleCommentsBtn');
+                    const postsSection = document.getElementById('userPosts');
+                    const commentsSection = document.getElementById('userComments');
+
+                    togglePostsBtn.addEventListener('click', () => {
+                        const isHidden = postsSection.classList.contains('hidden');
+                        postsSection.classList.toggle('hidden');
+                        togglePostsBtn.textContent = isHidden ? 'Ocultar Posts' : 'Mostrar Posts';
+                    });
+
+                    toggleCommentsBtn.addEventListener('click', () => {
+                        const isHidden = commentsSection.classList.contains('hidden');
+                        commentsSection.classList.toggle('hidden');
+                        toggleCommentsBtn.textContent = isHidden ? 'Ocultar Comentários' : 'Mostrar Comentários';
+                    });
+                } else {
+                    alert('Erro ao carregar perfil');
+                }
+            } catch (err) {
+                alert('Erro ao carregar perfil');
+            }
+        };
+    </script>
+</body>
+</html>

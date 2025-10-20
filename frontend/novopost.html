@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum Rap-BR</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <header class="header">
+        <img class="logo-site" src="/frontend/imagens/logo.oficial.png" alt="">
+
+        <nav class="nav-header">
+            <ul class="menu">
+               <li class="lista-menu"><a href="perfil_usuario.html">Perfil</a></li>  <!-- Novo link -->
+  <li class="lista-menu"><a href="entrar.html">Entrar</a></li>
+  <li class="lista-menu-foco"><a href="index.html">Home</a></li>
+  <li class="lista-menu"><a href="comunidade.html">Comunidade</a></li>
+  <li class="lista-menu"><a href="regras.html">Regras</a></li>
+  <li class="lista-menu"><a onclick="logout()">Sair</a></li>  <!-- Logout -->
+            </ul>
+        </nav>
+    </header>
+
+    <main class="main-novopost">
+        
+
+        <section class="pag-criar-post">
+            <h2 class="titulo-criar-post">Criar Nova Postagem</h2>
+
+            <script>
+  window.onload = checkLogin;
+</script>
+
+<form id="newPostForm" class="form-novo-post">
+    <label for="titulo-post">Título:</label>
+    <input type="text" name="titulo-post">
+    <label for="conteudo-post">Conteúdo:</label>
+    <textarea name="conteudo-post"></textarea>
+    <button type="submit" class="botao-publicar">Publicar</button>
+</form>
+        </section>
+    </main>
+
+<script>
+    const API_URL = 'http://localhost:3000/api'; // Mude para 3001 se alterou a porta
+    const token = localStorage.getItem('token');
+    function checkLogin() {
+        if (!token) window.location.href = 'entrar.html';
+    }
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = 'entrar.html';
+    }
+    window.onload = checkLogin;
+    document.getElementById('newPostForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = {
+            title: formData.get('titulo-post'),
+            content: formData.get('conteudo-post')
+        };
+        try {
+            const res = await fetch(`${API_URL}/posts`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                alert('Post publicado!');
+                window.location.href = 'index.html';
+            } else {
+                alert('Erro ao publicar');
+            }
+        } catch (err) {
+            alert('Erro ao publicar');
+        }
+    });
+</script>
+
+</body>
+
+</html>
