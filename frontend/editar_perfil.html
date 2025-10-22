@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editar Perfil - Fórum Rap-BR</title>
+    <link rel="stylesheet" href="style.css" />
+    <!-- Certifique-se de que style.css existe -->
+  </head>
+  <body>
+    <header class="header">
+      <img class="logo-site" src="/frontend/imagens/logo.oficial.png" alt="" />
+
+      <nav class="nav-header">
+        <ul class="menu">
+          <li class="lista-menu"><a href="perfil_usuario.html">Perfil</a></li>
+
+          <li class="lista-menu-foco"><a href="index.html">Home</a></li>
+          <li class="lista-menu"><a href="comunidade.html">Comunidade</a></li>
+          <li class="lista-menu"><a href="regras.html">Regras</a></li>
+          <li class="lista-menu"><a href="#" onclick="logout()">Sair</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main class="main">
+      <form id="editProfileForm" class="form-editar-perfil">
+        <label for="full_name">Nome completo:</label>
+        <input type="text" name="full_name" id="full_name" />
+        <label for="email">Email:</label>
+        <input type="email" name="email" id="email" />
+        <label for="bio">Bio:</label>
+        <textarea name="bio" id="bio"></textarea>
+        <label for="profile_pic">URL da Foto de Perfil:</label>
+        <input
+          type="url"
+          name="profile_pic"
+          id="profile_pic"
+          placeholder="https://exemplo.com/foto.jpg"
+        />
+        <label for="password">Nova Senha (opcional):</label>
+        <input type="password" name="password" id="password" />
+        <div class="botoes-edit">
+          <button type="submit" class="botao-voltar"><a href="perfil_usuario.html">Voltar ao perfil</a></button>
+
+        <button type="submit" class="botao-salvar">Salvar Alterações</button>
+        </div>
+      </form>
+    </main>
+    <script>
+      const API_URL = "http://localhost:3000/api"; // Mude para 3001 se alterou a porta
+      const token = localStorage.getItem("token");
+
+      function checkLogin() {
+        if (!token) window.location.href = "entrar.html";
+      }
+
+      function logout() {
+        localStorage.removeItem("token");
+        window.location.href = "entrar.html";
+      }
+
+      window.onload = async () => {
+        checkLogin();
+        try {
+          const res = await fetch(`${API_URL}/profile`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          if (res.ok) {
+            document.getElementById("full_name").value = data.user.full_name;
+            document.getElementById("email").value = data.user.email;
+            document.getElementById("bio").value = data.user.bio || "";
+            document.getElementById("profile_pic").value =
+              data.user.profile_pic;
+          } else {
+            alert("Erro ao carregar dados do perfil");
+          }
+        } catch (err) {
+          alert("Erro ao carregar dados do perfil");
+        }
+      };
+
+      document
+        .getElementById("editProfileForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const data = {
+            full_name: formData.get("full_name"),
+            email: formData.get("email"),
+            bio: formData.get("bio"),
+            profile_pic:
+              formData.get("profile_pic") || "https://via.placeholder.com/55",
+            password: formData.get("password"),
+          };
+
+          // Remove campos vazios, exceto bio (que pode ser vazia)
+          const filteredData = Object.fromEntries(
+            Object.entries(data).filter(
+              ([key, value]) => value || key === "bio"
+            )
+          );
+
+          try {
+            const res = await fetch(`${API_URL}/profile`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(filteredData),
+            });
+            const result = await res.json();
+            if (res.ok) {
+              alert("Perfil atualizado com sucesso!");
+              window.location.href = "perfil_usuario.html";
+            } else {
+              alert(result.error);
+            }
+          } catch (err) {
+            alert("Erro ao atualizar perfil");
+          }
+        });
+    </script>
+  </body>
+</html>

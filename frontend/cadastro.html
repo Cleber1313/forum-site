@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forum Rap-BR</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <header class="header">
+        <img class="logo-site" src="/frontend/imagens/logo.oficial.png" alt="">
+
+      <nav class="nav-header">
+        <ul class="menu">
+          <li class="lista-menu"><a href="entrar.html">Entrar</a></li>
+          <li class="lista-menu-foco"><a href="index.html">Home</a></li>
+          <li class="lista-menu"><a href="comunidade.html">Comunidade</a></li>
+          <li class="lista-menu"><a href="regras.html">Regras</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="main-cadastro">
+      <article class="card-cadastro">
+        <h1 class="title-cadastro">Cadastro:</h1>
+
+   <form class="form-cadastro" id="registerForm">
+    <label for="name"> Nome completo: </label>
+    <input class="input-nome" type="text" name="name">
+    <label for="date"> Data de Nascimento: </label>
+    <input class="input-data" type="date" name="date">
+    <label for="text"> Email:</label>
+    <input class="input-email" type="text" name="text">
+    <label for="password"> Senha:</label>
+    <input class="input-senha" type="password" name="password">
+    <button type="submit" class="botao-criarConta">Criar conta</button>
+</form>
+
+<div class="link-login">
+          <p>Já tem conta?</p>
+          <p><a href="entrar.html" class="entrar">Entrar</a></p>
+        </div>
+        
+      </article>
+    </main>
+  <script>
+    const API_URL = 'http://localhost:3000/api';  // Mude para 3001 se alterou a porta
+    const token = localStorage.getItem('token');
+    function checkLogin() {
+        if (!token) window.location.href = 'entrar.html';
+    }
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = 'entrar.html';
+    }
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = {
+            full_name: formData.get('name'),
+            birth_date: formData.get('date'),
+            email: formData.get('text'),
+            password: formData.get('password')
+        };
+        try {
+            const res = await fetch(`${API_URL}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (res.ok) {
+                alert('Cadastro feito! Faça login.');
+                window.location.href = 'entrar.html';
+            } else {
+                alert(result.error);
+            }
+        } catch (err) {
+            alert('Erro ao cadastrar');
+        }
+    });
+</script>
+  </body>
+</html>

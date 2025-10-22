@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forum Rap-BR</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <header class="header">
+        <img class="logo-site" src="/frontend/imagens/logo.oficial.png" alt="">
+
+      <nav class="nav-header">
+        <ul class="menu">
+          <li class="lista-menu-foco"><a href="index.html">Home</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="main-login">
+      <article class="card-login">
+        <h1 class="title-login">Login:</h1>
+
+       <form class="form-login" id="loginForm">
+    <label for="text"> Email:</label>
+    <input class="input-email" type="text" name="text">
+    <label for="password"> Senha:</label>
+    <input class="input-senha" type="password" name="password">
+    <button type="submit" class="botao-entrar">Entrar</button>
+</form>
+
+        <div class="link-cadastro">
+          <p>Primeira vez no Fórum?</p>
+          <a class="cadastra-se" href="cadastro.html">Cadastre-se</a>
+        </div>
+      </article>
+    </main>
+    <script>
+    const API_URL = 'http://localhost:3000/api'; // Mude para 3001 se alterou a porta
+    const token = localStorage.getItem('token');
+    function checkLogin() {
+        if (!token) window.location.href = 'entrar.html';
+    }
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = 'entrar.html';
+    }
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = {
+            email: formData.get('text'),
+            password: formData.get('password')
+        };
+        try {
+            const res = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (res.ok) {
+                localStorage.setItem('token', result.token);
+                alert('Login feito!');
+                window.location.href = 'index.html';
+            } else {
+                alert(result.error);
+            }
+        } catch (err) {
+            alert('Erro ao logar');
+        }
+    });
+</script>
+  </body>
+</html>

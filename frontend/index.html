@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum Rap-BR</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <header class="header">
+        <img class="logo-site" src="/frontend/imagens/logo.oficial.png" alt="">
+
+        <nav class="nav-header">
+            <ul class="menu">
+  <li class="lista-menu"><a href="perfil_usuario.html">Perfil</a></li>  <!-- Novo link -->
+  <li class="lista-menu"><a href="entrar.html">Entrar</a></li>
+  <li class="lista-menu-foco"><a href="index.html">Home</a></li>
+  <li class="lista-menu"><a href="comunidade.html">Comunidade</a></li>
+  <li class="lista-menu"><a href="regras.html">Regras</a></li>
+  <li class="lista-menu"><a onclick="logout()">Sair</a></li>  <!-- Logout -->
+</ul>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="main">
+
+        
+<div class="criarPost"><a href="novopost.html">Criar publicação</a></div>
+
+<div id="postsContainer">            
+            <div class="usuario">
+                <img class="foto-Usuario"
+                    src=""
+                    alt="">
+                <h1 class="nome-usuario"></h1>
+            </div>
+            <div class="content">
+                <p>     </p>
+            </div>
+
+            <div class="area-comentario">
+                <textarea class="campo-comentario" placeholder="Escreva seu comentário..."></textarea>
+                <button class="botao-comentar">Comentar</button>
+            </div>
+
+            <input type="checkbox" id="toggle-comentarios-eduardo" class="toggle-comentarios-checkbox">
+            <label for="toggle-comentarios-eduardo" class="toggle-comentarios-btn">Ocultar Comentários</label>
+
+            <div class="comentarios-existentes">
+                <div class="comentario-item">
+                    <div class="info-comentario">
+                        <img src=""
+                            alt="Foto Usuário Comentário" class="foto-comentario">
+                        <span class="nome-comentario"></span>
+                    </div>
+         
+
+          
+     
+    </main>
+
+
+
+
+
+  <script>
+    const API_URL = 'http://localhost:3000/api';
+    const token = localStorage.getItem('token');
+    function checkLogin() {
+        if (!token) window.location.href = 'entrar.html';
+    }
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = 'entrar.html';
+    }
+    async function loadPosts() {
+    try {
+        const res = await fetch(`${API_URL}/posts`);
+        const posts = await res.json();
+        const container = document.getElementById('postsContainer');
+        container.innerHTML = '';
+        posts.forEach(post => {
+            const card = document.createElement('article');
+            card.className = 'card';
+            card.innerHTML = `
+                <div class="usuario">
+                    <img class="foto-Usuario" src="${post.profile_pic}" alt="">
+                    <h1 class="nome-usuario">${post.full_name}</h1>
+                </div>
+                <div class="content">
+                    <h2>${post.title || ''}</h2>
+                    <p>${post.content}</p>
+                    <small>${new Date(post.created_at).toLocaleString()}</small>
+                </div>
+                <div class="area-comentario">
+                    <textarea class="campo-comentario" placeholder="Escreva seu comentário..."></textarea>
+                    <button class="botao-comentar" onclick="addComment(${post.id}, this.previousElementSibling.value)">Comentar</button>
+                </div>
+                <input type="checkbox" id="toggle-comentarios-${post.id}" class="toggle-comentarios-checkbox">
+                <label for="toggle-comentarios-${post.id}" class="toggle-comentarios-btn">Mostrar Comentários</label>
+                <div class="comentarios-existentes" id="comments-${post.id}"></div>
+            `;
+            container.appendChild(card);
+            loadComments(post.id);
+
+            // Adicionar evento para alternar o texto do label
+            const checkbox = card.querySelector(`#toggle-comentarios-${post.id}`);
+            const label = card.querySelector(`.toggle-comentarios-btn`);
+            checkbox.addEventListener('change', () => {
+                label.textContent = checkbox.checked ? 'Ocultar Comentários' : 'Mostrar Comentários';
+            });
+        });
+    } catch (err) {
+        console.error('Erro ao carregar posts');
+    }
+}
+    async function loadComments(postId) {
+        try {
+            const res = await fetch(`${API_URL}/posts/${postId}/comments`);
+            const comments = await res.json();
+            const container = document.getElementById(`comments-${postId}`);
+            container.innerHTML = '';
+            comments.forEach(comment => {
+                const item = document.createElement('div');
+                item.className = 'comentario-item';
+                item.innerHTML = `
+                    <div class="info-comentario">
+                        <img src="${comment.profile_pic}" alt="" class="foto-comentario">
+                        <span class="nome-comentario">${comment.full_name}</span>
+                    </div>
+                    <p class="texto-comentario">${comment.content}</p>
+                    <small>${new Date(comment.created_at).toLocaleString()}</small>
+                `;
+                container.appendChild(item);
+            });
+        } catch (err) {
+            console.error('Erro ao carregar comentários');
+        }
+    }
+    async function addComment(postId, content) {
+        if (!content) return alert('Escreva algo!');
+        if (!token) return alert('Faça login!');
+        try {
+            const res = await fetch(`${API_URL}/posts/${postId}/comments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ content })
+            });
+            if (res.ok) {
+                loadComments(postId);
+            } else {
+                alert('Erro ao comentar');
+            }
+        } catch (err) {
+            alert('Erro ao comentar');
+        }
+    }
+    window.onload = loadPosts;
+</script>
+</body>
+
+</html>
